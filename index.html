@@ -98,7 +98,9 @@ input,select{font:inherit;padding:.6rem .75rem;border:1px solid var(--line);bord
   .stim.collapsed{max-height:9rem;overflow:hidden;position:relative}
   .stim.collapsed::after{content:"";position:absolute;inset:auto 0 0 0;height:4rem;background:linear-gradient(transparent,var(--surface))}
   .togglestim{display:inline-block}
+  .keteks{display:inline-flex}
 }
+.keteks{display:none;position:fixed;right:1rem;bottom:1rem;z-index:30;align-items:center;gap:.3rem;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);border-radius:999px;padding:.55rem .9rem;font-weight:600;box-shadow:var(--shadow)}
 .togglestim{display:none;margin:.4rem 0 .8rem}
 
 /* result */
@@ -301,7 +303,7 @@ function renderExam() {
   <div class="exam">
     <aside class="stim" id="stim"><div class="eyebrow">Teks bacaan</div><h2>${esc(t.judul)}</h2>${stim}${t.puisi ? '<div class="src">(ditulis untuk keperluan asesmen)</div>' : ""}</aside>
     <div>
-      <button class="togglestim ghost" id="tgl">Tampilkan teks lengkap</button>
+      <button class="togglestim ghost" id="tgl">Sembunyikan teks bacaan</button>
       <div class="qs">${items.map((it, i) => qHtml(it, i)).join("")}</div>
       <div class="nav">
         <button id="prev" ${S.sec === 0 ? "disabled" : ""}>← Bagian sebelumnya</button>
@@ -310,9 +312,10 @@ function renderExam() {
       <div class="dots" style="margin-top:.8rem">${S.paket.teksOrder.map((id, i) => { const n = S.paket.items.filter((x) => x.teks === id).length, d = S.paket.items.filter((x) => x.teks === id && S.jawaban[x.no] != null).length; return `<button class="dot ${d === n ? "done" : ""} ${i === S.sec ? "cur" : ""}" data-sec="${i}" title="Bagian ${i + 1}">${i + 1}</button>`; }).join("")}</div>
       <p class="note">Kotak biru = semua soal bagian itu sudah dijawab. Anda bisa kembali ke bagian mana pun sebelum mengumpulkan.</p>
     </div>
-  </div>`;
-  if (window.innerWidth <= 860) { $("#stim").classList.add("collapsed"); }
-  $("#tgl").onclick = () => { const c = $("#stim").classList.toggle("collapsed"); $("#tgl").textContent = c ? "Tampilkan teks lengkap" : "Ringkas teks"; };
+  </div>
+  <button class="keteks" id="keteks" title="Kembali ke teks bacaan">▲ Teks</button>`;
+  $("#tgl").onclick = () => { const c = $("#stim").classList.toggle("collapsed"); $("#tgl").textContent = c ? "Tampilkan teks bacaan selengkapnya" : "Sembunyikan teks bacaan"; if (!c) $("#stim").scrollIntoView({ behavior: "smooth", block: "start" }); };
+  $("#keteks").onclick = () => { $("#stim").classList.remove("collapsed"); $("#tgl").textContent = "Sembunyikan teks bacaan"; $("#stim").scrollIntoView({ behavior: "smooth", block: "start" }); };
   app.querySelectorAll(".dot").forEach((b) => (b.onclick = () => { S.sec = +b.dataset.sec; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); }));
   if ($("#prev")) $("#prev").onclick = () => { S.sec--; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); };
   if ($("#next")) $("#next").onclick = () => { S.sec++; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); };
