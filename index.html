@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Tryout TKA Merdeka</title>
+<script>/* PENGATURAN SERVER HASIL (opsional): isi dengan URL Web App Google Apps Script di antara tanda kutip, contoh "https://script.google.com/macros/s/AKfycb.../exec" */ window.TKA_SERVER = "";</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#F2F4F6;--surface:#FFFFFF;--surface2:#E9EDF1;--line:#D3DAE1;--ink:#182430;--ink2:#4A5866;--muted:#7B8794;
+  --accent:#0E6C8A;--accent-ink:#FFFFFF;--accent-soft:#DDEEF4;
+  --good:#2E7D4F;--good-soft:#DFF1E6;--warn:#A86B12;--warn-soft:#FBEBD0;--crit:#B0392B;--crit-soft:#F8DEDA;
+  --shadow:0 1px 2px rgba(24,36,48,.06),0 8px 24px -12px rgba(24,36,48,.18);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F161D;--surface:#172029;--surface2:#1F2A35;--line:#2C3947;--ink:#E7EDF3;--ink2:#B7C3CF;--muted:#8394A5;
+  --accent:#4FB3D3;--accent-ink:#0B1A22;--accent-soft:#163542;
+  --good:#5CC48A;--good-soft:#173527;--warn:#E0A94A;--warn-soft:#3A2B10;--crit:#EF7A6A;--crit-soft:#3E1B16;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);}}
+:root[data-theme="dark"]{
+  --bg:#0F161D;--surface:#172029;--surface2:#1F2A35;--line:#2C3947;--ink:#E7EDF3;--ink2:#B7C3CF;--muted:#8394A5;
+  --accent:#4FB3D3;--accent-ink:#0B1A22;--accent-soft:#163542;
+  --good:#5CC48A;--good-soft:#173527;--warn:#E0A94A;--warn-soft:#3A2B10;--crit:#EF7A6A;--crit-soft:#3E1B16;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Source Sans 3",system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:.55rem .95rem}
+button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.ghost{background:transparent}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select{font:inherit;padding:.6rem .75rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%}
+.eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1180px;margin:0 auto;padding:1rem}
+[hidden]{display:none!important}
+
+/* topbar */
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:1rem;padding:.6rem 1rem}
+.top .brand{display:flex;flex-direction:column;line-height:1.15}
+.top .brand b{font-family:Fraunces,Georgia,serif;font-size:1.05rem}
+.top .brand span{font-size:.75rem;color:var(--muted)}
+.timer{margin-left:auto;font-size:1.15rem;padding:.3rem .7rem;border-radius:8px;background:var(--surface2)}
+.timer.warn{background:var(--warn-soft);color:var(--warn)}
+.timer.crit{background:var(--crit-soft);color:var(--crit)}
+
+/* login */
+.login{max-width:520px;margin:2.5rem auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.75rem;box-shadow:var(--shadow)}
+.login h1{font-size:1.9rem;margin:.35rem 0 .25rem}
+.login p{color:var(--ink2);margin:.25rem 0 1rem}
+.field{display:flex;flex-direction:column;gap:.3rem;margin:.75rem 0}
+.field label{font-weight:600;font-size:.9rem}
+.spec{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:1rem 0}
+.spec div{background:var(--surface2);border-radius:8px;padding:.5rem .6rem}
+.spec b{display:block;font-size:1.25rem;font-family:"IBM Plex Mono",monospace}
+.spec span{font-size:.75rem;color:var(--muted)}
+.rules{font-size:.9rem;color:var(--ink2);padding-left:1.1rem;margin:.5rem 0 1rem}
+.rules li{margin:.2rem 0}
+
+/* exam layout */
+.exam{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+.stim{position:sticky;top:64px;max-height:calc(100vh - 80px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.25rem 1.4rem}
+.stim h2{font-size:1.3rem;margin:.2rem 0 .8rem}
+.stim p{margin:0 0 .8rem;text-indent:1.5em;max-width:62ch;hyphens:auto}
+.stim p.noind{text-indent:0}
+.stim .puisi p{text-indent:0;white-space:pre-line;margin:0 0 1rem;font-style:normal}
+.stim .sub{font-weight:700;margin:.6rem 0 .3rem}
+.stim .src{font-size:.8rem;color:var(--muted);text-align:right;font-style:italic}
+.qs{display:flex;flex-direction:column;gap:1rem}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem}
+.q .head{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.4rem}
+.q .num{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--accent);font-size:.95rem}
+.q .kind{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.q .stem{font-weight:600;margin:0 0 .7rem;line-height:1.45}
+.opt{display:flex;gap:.65rem;align-items:flex-start;padding:.55rem .65rem;border:1px solid var(--line);border-radius:8px;margin:.35rem 0;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt input{width:auto;margin:.25rem 0 0;accent-color:var(--accent);flex:none}
+.opt .L{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink2);flex:none;min-width:1.1rem}
+.kat{width:100%;border-collapse:collapse;font-size:.95rem}
+.kat th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--line)}
+.kat td{padding:.5rem .4rem;border-bottom:1px solid var(--line);vertical-align:top}
+.kat td.c{text-align:center;white-space:nowrap}
+.kat label{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .5rem;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:.85rem}
+.kat label.on{background:var(--accent-soft);border-color:var(--accent)}
+.kat input{width:auto;accent-color:var(--accent)}
+.nav{display:flex;gap:.5rem;justify-content:space-between;align-items:center;margin-top:.5rem}
+.dots{display:flex;flex-wrap:wrap;gap:.3rem}
+.dot{width:2rem;height:2rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-family:"IBM Plex Mono",monospace;font-size:.8rem;padding:0}
+.dot.done{background:var(--accent-soft);border-color:var(--accent)}
+.dot.cur{outline:2px solid var(--accent)}
+.progress{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin:.6rem 0}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.sectionbar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+.sectionbar .eyebrow{color:var(--accent)}
+@media (max-width:860px){
+  .exam{grid-template-columns:1fr}
+  .stim{position:static;max-height:none}
+  .stim.collapsed{max-height:9rem;overflow:hidden;position:relative}
+  .stim.collapsed::after{content:"";position:absolute;inset:auto 0 0 0;height:4rem;background:linear-gradient(transparent,var(--surface))}
+  .togglestim{display:inline-block}
+}
+.togglestim{display:none;margin:.4rem 0 .8rem}
+
+/* result */
+.res{max-width:820px;margin:1.5rem auto}
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:1.5rem;box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center}
+.score{font-family:Fraunces,Georgia,serif;font-size:4rem;line-height:1;font-weight:700;color:var(--accent)}
+.score small{font-size:1.2rem;color:var(--muted);font-family:"Source Sans 3",sans-serif;font-weight:400}
+.hero h2{font-size:1.4rem}
+.hero p{margin:.2rem 0;color:var(--ink2)}
+.pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;font-size:.8rem;font-weight:700}
+.pill.good{background:var(--good-soft);color:var(--good)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.crit{background:var(--crit-soft);color:var(--crit)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem;margin-top:1rem}
+.card h3{font-size:1.1rem;margin-bottom:.6rem}
+.bars{display:grid;gap:.6rem}
+.bar{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,3fr) auto;gap:.75rem;align-items:center;font-size:.95rem}
+.bar .track{height:12px;background:var(--surface2);border-radius:6px;overflow:hidden}
+.bar .track i{display:block;height:100%;border-radius:6px;background:var(--accent)}
+.bar .track i.good{background:var(--good)}.bar .track i.warn{background:var(--warn)}.bar .track i.crit{background:var(--crit)}
+.bar .v{font-family:"IBM Plex Mono",monospace;font-size:.85rem;min-width:5.5rem;text-align:right}
+table.t{width:100%;border-collapse:collapse;font-size:.92rem}
+table.t th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:.4rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t td{padding:.45rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+table.t td.n{font-family:"IBM Plex Mono",monospace;text-align:right;white-space:nowrap}
+.tw{overflow-x:auto}
+.grid30{display:flex;flex-wrap:wrap;gap:.3rem}
+.grid30 span{width:2.1rem;height:2.1rem;border-radius:6px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:.8rem;font-weight:600}
+.grid30 .ok{background:var(--good-soft);color:var(--good)}.grid30 .no{background:var(--crit-soft);color:var(--crit)}.grid30 .skip{background:var(--surface2);color:var(--muted)}
+.note{font-size:.85rem;color:var(--muted)}
+.bahas{border-left:3px solid var(--line);padding:.4rem .8rem;margin:.5rem 0;font-size:.92rem}
+.bahas b{color:var(--accent)}
+.actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+
+/* teacher */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.6rem}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.7rem .9rem}
+.kpi b{display:block;font-family:"IBM Plex Mono",monospace;font-size:1.5rem}
+.kpi span{font-size:.75rem;color:var(--muted)}
+.toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin:.8rem 0}
+.toolbar select,.toolbar input{width:auto}
+.tabs{display:flex;gap:.25rem;border-bottom:1px solid var(--line);margin:.8rem 0}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:.5rem .8rem;color:var(--ink2)}
+.tabs button.on{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
+.diff{display:inline-block;width:.65rem;height:.65rem;border-radius:50%;margin-right:.35rem;vertical-align:middle}
+.diff.mudah{background:var(--good)}.diff.sedang{background:var(--warn)}.diff.sukar{background:var(--crit)}
+.del{color:var(--crit);border-color:transparent;background:transparent;padding:.2rem .4rem}
+.toast{position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:8px;font-size:.9rem;z-index:50;box-shadow:var(--shadow)}
+.foot{text-align:center;font-size:.8rem;color:var(--muted);margin:2rem 0 1rem}
+.foot button{font-size:.8rem;padding:.25rem .6rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+
+<div class="top"><div class="wrap">
+  <div class="brand"><b>Tryout TKA · Bahasa Indonesia</b><span>SMA Plus Merdeka Soreang · 30 soal · 90 menit</span></div>
+  <div id="timer" class="timer mono" hidden>90:00</div>
+</div></div>
+
+<main class="wrap" id="app"></main>
+<p class="foot" id="foot">Disusun mengikuti Kerangka Asesmen TKA SMA Pusmendik. &nbsp;<button class="ghost" id="btnGuru">Masuk sebagai guru</button></p>
+
+<script>
+const D = {"SUB":{"T1":["Pemahaman Tekstual","Mengidentifikasi penggunaan kata serapan dari bahasa daerah/asing dalam berbagai bidang"],"T2":["Pemahaman Tekstual","Mengidentifikasi latar, karakter, dan/atau fenomena berdasarkan kosakata yang digunakan dalam teks fiksi atau nonfiksi"],"T3":["Pemahaman Tekstual","Menyusun kerangka atau bagan berdasarkan bagian-bagian penting dalam teks"],"I1":["Pemahaman Inferensial","Menyimpulkan ide pokok, gagasan pendukung, tokoh, peristiwa, latar, konflik, atau nilai-nilai dalam teks"],"I2":["Pemahaman Inferensial","Menjelaskan hubungan makna antarkalimat dan/atau antarparagraf dalam teks"],"I3":["Pemahaman Inferensial","Memprediksi lanjutan atau akhir uraian/cerita berdasarkan bagian tertentu dalam teks"],"E1":["Evaluasi dan Apresiasi","Menilai relevansi peristiwa dalam teks dengan kehidupan sehari-hari"],"E2":["Evaluasi dan Apresiasi","Menilai keakuratan, kesesuaian, kecukupan, atau ketepatan informasi dalam teks"],"E3":["Evaluasi dan Apresiasi","Menilai ketepatan dan kesesuaian penggunaan bahasa dalam teks"],"E4":["Evaluasi dan Apresiasi","Menilai ketepatan bagian teks untuk menggambarkan karakter, peristiwa, atau latar dalam teks fiksi"],"E5":["Evaluasi dan Apresiasi","Menyimpulkan respons emosional terhadap unsur puisi, prosa, dan drama"]},"TEKS":[{"id":1,"jenis":"Teks informasi tunggal","judul":"Energi Panas Bumi di Pegunungan Bandung Selatan","soal":"1 s.d. 4","paragraf":["Kawasan pegunungan di selatan Kabupaten Bandung menyimpan kekayaan yang tidak terlihat dari permukaan. Di bawah lereng Gunung Wayang dan Gunung Malabar, uap panas bertekanan tinggi tersimpan dalam batuan berpori. Uap itulah yang dimanfaatkan pembangkit listrik tenaga panas bumi di Wayang Windu, Pangalengan, dan di Kamojang, Ibun. Sejak dekade 1980-an, kedua lapangan tersebut memasok listrik ke jaringan Jawa–Bali. Kapasitasnya kini setara dengan kebutuhan listrik ratusan ribu rumah tangga, sesuatu yang jarang disadari warga yang tinggal di kaki gunung itu.","Prinsip kerjanya relatif sederhana meskipun teknologinya rumit. Sumur bor menembus reservoir hingga kedalaman lebih dari seribu meter. Uap yang keluar dialirkan ke turbin sehingga generator berputar dan menghasilkan listrik. Setelah dimanfaatkan, uap dikondensasikan menjadi air dan diinjeksikan kembali ke dalam bumi. Siklus ini membuat panas bumi tergolong energi terbarukan yang emisinya jauh lebih rendah daripada batu bara.","Meskipun demikian, pengembangan panas bumi bukan tanpa hambatan. Tahap eksplorasi menelan biaya besar dengan risiko kegagalan yang tinggi; satu sumur yang kering dapat menghanguskan puluhan miliar rupiah. Sebagian warga sekitar juga khawatir terhadap dampak pengeboran pada mata air dan lahan pertanian mereka. Sebaliknya, pengelola menegaskan bahwa kawasan hutan di sekitar lapangan justru dijaga ketat karena hutan berfungsi sebagai daerah resapan yang mengisi ulang reservoir.","Oleh karena itu, kunci keberlanjutan panas bumi terletak pada kepercayaan. Perusahaan perlu membuka data pemantauan lingkungan secara berkala, sedangkan pemerintah daerah harus memastikan dana bagi hasil benar-benar kembali ke desa penyangga. Tanpa dua hal itu, potensi energi bersih yang melimpah di Bandung Selatan hanya akan menjadi angka dalam laporan."]},{"id":2,"jenis":"Teks fiksi (cerpen)","judul":"Panen Sebelum Seleksi","soal":"5 s.d. 8","paragraf":["Kabut belum sepenuhnya terangkat dari kebun ketika Abah sudah berjongkok di antara bedengan stroberi. Jemarinya yang kasar memetik buah yang merahnya sudah sempurna, lalu menyusunnya di keranjang bambu. “Rani, sok atuh, bantu Abah. Tengkulak datang jam delapan,” katanya tanpa menoleh.","Aku berdiri di ujung bedengan dengan seragam yang sudah rapi. Hari ini seleksi paduan angklung tingkat kabupaten dimulai pukul tujuh, dan Bu Wulan sudah mewanti-wanti agar tidak ada yang terlambat. Namun, harga stroberi sedang tinggi-tingginya. Kalau panen tertunda sehari saja, buah akan lembek dan harganya jatuh. Abah tahu itu, aku pun tahu. Sudah dua musim harga anjlok, dan baru kali ini tengkulak berani membayar mahal.","“Abah, latihan hari ini penentuan,” kataku pelan. Abah berhenti memetik. Ia menatap keranjang, bukan menatapku. “Kalau tidak dipanen sekarang, ongkos sekolahmu bulan depan dari mana?” Kalimat itu tidak keras, tetapi menghunjam lebih dalam daripada bentakan.","Aku menelan ludah. Dalam kepalaku, dua gambar bertumpuk: deretan angklung yang menunggu digoyang dan bedengan yang menunggu dipetik. Aku melepas sepatu, menggulung lengan seragam, lalu berjongkok di bedengan sebelah Abah. Kami memetik tanpa bicara. Hanya bunyi tangkai yang patah dan napas Abah yang terdengar. Kabut menipis, matahari mulai menyentuh punggung kami.","Pukul tujuh lewat dua puluh, keranjang terakhir penuh. Abah berdiri, memandangi sepatuku yang teronggok di pematang. “Lari,” katanya singkat. “Abah yang urus tengkulak.” Aku tidak bertanya lagi. Kuraih sepatu, kusampirkan tali sekolahku, lalu aku berlari menuruni jalan kebun yang licin sambil berdoa Bu Wulan belum menutup pintu aula."]},{"id":3,"jenis":"Teks informasi jamak","judul":"Memulihkan Citarum","soal":"9 s.d. 12","bagian":[{"label":"Teks 1","paragraf":["Sungai Citarum mengalir sepanjang hampir tiga ratus kilometer dari Situ Cisanti di Kertasari hingga Muara Gembong. Selama puluhan tahun, sungai ini menyandang julukan salah satu sungai terkotor di dunia. Pada 2018, pemerintah meluncurkan program Citarum Harum dengan target tujuh tahun untuk memulihkan kualitas airnya. Target itu dianggap ambisius mengingat jutaan orang menggantungkan hidup pada sungai ini.","Program ini melibatkan satuan tugas gabungan yang terdiri atas unsur TNI, pemerintah daerah, dan akademisi. Setiap sektor sungai diawasi seorang komandan yang bertanggung jawab atas pengerukan sedimen, penertiban keramba, dan pengawasan limbah pabrik. Menurut laporan pemerintah provinsi, indeks kualitas air Citarum membaik dari kategori cemar berat menjadi cemar ringan dalam lima tahun pertama. Meski demikian, laporan yang sama mengakui bahwa timbunan sampah domestik di hulu masih menjadi penyumbang pencemaran terbesar."]},{"label":"Teks 2","paragraf":["Setiap Minggu pagi, puluhan relawan Komunitas Peduli Citarum berkumpul di bantaran sungai di Baleendah. Mereka menyusuri tepian dengan karung dan pengait, memunguti sampah yang tersangkut di akar bambu. Dalam sekali kegiatan, mereka bisa mengumpulkan puluhan karung, sebagian besar berupa plastik kemasan dan popok bekas. Bagi Deni, koordinator komunitas itu, pekerjaan mereka seperti menimba air dengan keranjang. “Sekali hujan besar, sampah dari hulu turun lagi,” ujarnya.","Komunitas ini juga mendirikan bank sampah di tiga RW agar warga terbiasa memilah sampah sejak dari rumah. Namun, ia mengakui perubahan kebiasaan berjalan lambat. Banyak warga masih menganggap sungai sebagai tempat pembuangan yang praktis dan gratis. Deni tidak menolak program pemerintah, tetapi ia menilai pengawasan belum menyentuh akar masalah. Selama truk pengangkut sampah tidak menjangkau kampung-kampung di bantaran, katanya, sungai akan tetap menjadi pilihan terakhir warga."]}]},{"id":4,"jenis":"Teks informasi tunggal","judul":"Angklung di Tangan Generasi Digital","soal":"13 s.d. 16","paragraf":["Sejak diakui UNESCO sebagai warisan budaya takbenda pada 2010, angklung tidak lagi sekadar alat musik bambu dari tatar Sunda. Ia menjadi identitas yang dipertaruhkan: dirawat atau ditinggalkan. Di sebuah sanggar di Bandung timur, anak-anak kampung dilatih sejak usia lima tahun. Mereka belajar tanpa partitur, hanya mengikuti isyarat tangan pelatih yang menandai tiap nada. Dalam beberapa bulan, anak-anak itu sudah mampu memainkan lagu utuh bersama puluhan pemain lain.","Tantangan terbesar justru datang dari luar panggung. Generasi muda tumbuh bersama gawai yang menawarkan hiburan tanpa batas. Bagi mereka, angklung kerap dianggap kuno dan hanya muncul pada acara sekolah. Akibatnya, jumlah anak yang bersedia berlatih rutin terus menyusut, terutama setelah mereka memasuki jenjang SMA. Sebagian beralasan sibuk, sebagian lagi merasa malu dianggap ketinggalan zaman.","Sanggar itu tidak menyerah pada keadaan. Mereka mengunggah pertunjukan ke kanal video dan berkolaborasi dengan musisi jazz untuk mengaransemen lagu populer. Beberapa pelajar bahkan merancang aplikasi angklung virtual yang dapat dimainkan di telepon genggam, lengkap dengan nada yang direkam dari angklung asli. Cara ini memang mengundang kritik dari kalangan pelestari tradisi. Menurut mereka, angklung kehilangan ruhnya jika dipisahkan dari bambu dan kebersamaan pemainnya.","Namun, pengelola sanggar berpendapat sebaliknya. Tradisi yang tidak diadaptasi, katanya, akan mati bersama generasi yang mewarisinya. Angklung digital bukan pengganti, melainkan pintu masuk. Setelah anak-anak tertarik lewat layar, barulah mereka diajak memegang bambu yang sesungguhnya. Bagi sanggar itu, pelestarian bukan soal menjaga bentuk lama, melainkan memastikan bunyinya tetap terdengar oleh telinga baru."]},{"id":5,"jenis":"Teks fiksi (puisi)","judul":"Kabar dari Kebun Teh Rancabali","soal":"17 s.d. 19","puisi":true,"paragraf":["di punggung bukit yang selalu basah\nperempuan-perempuan berjalan sebelum subuh\nkeranjang di punggung, kabut di rambut\njemari mereka menghitung pucuk\nseperti menghitung sisa umur","hujan di sini tak pernah benar-benar pergi\nia hanya berpindah dari daun ke daun\ndari topi lebar ke bahu yang membungkuk\nlalu jatuh ke tanah yang tak pernah mereka miliki","di kota, seseorang menyeduh kehangatan\ndari pucuk yang dipetik pada pagi buta\ntanpa tahu berapa banyak punggung\nyang membungkuk untuk satu cangkir","petang turun, upah dihitung per kilogram\ndan kabut kembali menutup bukit\nseolah tak ingin siapa pun melihat\nbetapa hijau yang indah itu\nditanam di atas lelah yang tak terbayar"]},{"id":6,"jenis":"Teks informasi tunggal","judul":"Dari Lereng Malabar ke Cangkir Dunia","soal":"20 s.d. 23","paragraf":["Kopi arabika Jawa Barat pernah menjadi komoditas termahal di pasar Eropa pada abad ke-18 dengan nama Java Preanger. Namun, serangan penyakit karat daun pada akhir abad ke-19 menghancurkan hampir seluruh perkebunan. Selama seabad berikutnya, lereng Malabar, Tilu, dan Patuha lebih dikenal sebagai penghasil teh dan sayuran. Kopi tersisa sebagai tanaman pekarangan yang diolah seadanya, dijual murah kepada pengepul tanpa nama asal yang jelas.","Kebangkitan dimulai pada awal 2000-an ketika sejumlah petani Pangalengan diberi izin menanam kopi di bawah tegakan hutan pinus. Skema tumpang sari ini menguntungkan dua pihak: hutan terjaga karena petani berkepentingan menjaganya, sedangkan petani memperoleh penghasilan tambahan. Satu dekade kemudian, kopi dari lereng Malabar meraih peringkat tinggi dalam sebuah kontes cita rasa internasional. Nama Java Preanger kembali disebut para pembeli dari luar negeri, dan harga di tingkat petani sempat naik berlipat.","Keberhasilan itu memunculkan persoalan baru. Permintaan melonjak, tetapi sebagian petani tergoda memanen buah yang belum matang demi mengejar setoran. Akibatnya, mutu biji tidak seragam dan harga di tingkat petani kembali tertekan. Sebagian kelompok tani menjawab tantangan ini dengan membangun rumah pengolahan bersama. Di sana, buah disortir, difermentasi, dan dijemur dengan standar yang sama sehingga pembeli tidak lagi menawar dengan curiga. Petani yang memanen buah mentah pun ditolak, dan lambat laun kebiasaan itu hilang.","Pelajaran dari Malabar sederhana, tetapi sering diabaikan: nama besar tidak menjamin kesejahteraan. Yang menjamin adalah kedisiplinan pada mutu dan kemauan bekerja secara kolektif. Tanpa keduanya, kopi Jawa Barat bisa kembali menjadi cerita masa lalu."]},{"id":7,"jenis":"Teks fiksi (cerpen)","judul":"Mata Cepot","soal":"24 s.d. 27","paragraf":["Bengkel Aki di Jelekong hanya berupa bale bambu berdinding papan. Di situ, hampir lima puluh tahun Aki mengukir kayu albasia menjadi wajah-wajah wayang golek. Serbuk kayu menempel di rambutnya yang memutih, seperti tidak pernah benar-benar dibersihkan. Sore itu, tanganku menggenggam ponsel, merekam Aki yang sedang menatah mata Cepot. “Kumaha, Ki, boleh kuunggah?” tanyaku.","Aki tidak menjawab. Pahatnya terus bergerak, mengikis serat kayu dengan ketelitian yang tidak kupahami. Baru setelah mata itu selesai, ia menoleh. “Untuk apa?” “Biar orang tahu, Ki. Pesanan bisa datang dari mana-mana.” Aku menyebutkan angka pengikut dan penonton yang baginya hanya bunyi. Ia mengangguk sopan, tetapi matanya kembali ke pahat.","Aki mengangkat wajah Cepot yang belum dicat. “Tahu kenapa mata Cepot melirik?” Aku menggeleng. “Karena ia selalu curiga pada yang gampang.” Aki tertawa pendek, lalu meletakkan pahat. Ia bercerita tentang pesanan dalang dari Sumedang yang menunggu tiga bulan hanya untuk satu Arjuna, sebab kayunya harus dikeringkan dengan benar. Kalau tergesa, katanya, wajah itu akan retak sebelum sempat dimainkan.","Aku diam. Di layar ponselku, video berdurasi lima belas detik itu menunggu diunggah. Aku merasa ada yang keliru: bukan pada Aki, bukan pula pada ponselku, tetapi pada tergesa-gesanya aku ingin semua orang tahu tanpa aku sendiri memahami.","Malam itu aku menghapus video tersebut. Esoknya aku datang lagi, tanpa ponsel, membawa sebilah pahat kecil pemberian Aki yang selama ini teronggok di laci. “Ajari dari yang paling gampang, Ki,” kataku. Aki menyodorkan sebatang kayu. “Tidak ada yang gampang,” jawabnya. “Yang ada, yang dikerjakan sampai selesai.”"]},{"id":8,"jenis":"Teks informasi tunggal (kalimat bernomor)","judul":"Banjir Langganan di Cekungan Citarum","soal":"28 s.d. 30","paragraf":["(1) Setiap musim hujan, nama Dayeuhkolot dan Baleendah hampir selalu muncul dalam berita banjir. (2) Kedua kecamatan di Kabupaten Bandung itu terletak di cekungan terendah aliran Citarum. (3) Air dari puluhan anak sungai, termasuk Cisangkuy dan Cikapundung, bertemu di titik ini sebelum mengalir ke barat. (4) Ketika hujan deras turun serentak di hulu, debit air melampaui kapasitas sungai dan meluap ke permukiman.","(5) Banjir di kawasan ini bukan semata-mata peristiwa alam. (6) Sedimentasi yang tinggi akibat erosi di hulu membuat dasar sungai kian dangkal dari tahun ke tahun. (7) Selain itu, banyak para warga yang membangun rumah tepat di bantaran sehingga ruang aliran sungai menyempit. (8) Alih fungsi lahan di hulu, dari hutan menjadi kebun sayur, membuat air hujan turun tanpa sempat meresap.","(9) Pemerintah telah membangun kolam retensi dan terowongan pengendali air di Curug Jompong. (10) Upaya ini terbukti mengurangi lama genangan dari hitungan minggu menjadi hitungan hari, tetapi belum menghilangkan banjir sepenuhnya. (11) Sebagian warga yang rumahnya sudah terendam berkali-kali memilih bertahan karena tidak sanggup membeli tanah di tempat lain yang lebih aman. (12) Mereka meninggikan lantai rumah, menyimpan barang di loteng, dan menyiapkan perahu kecil sebagai kebiasaan tahunan yang sangat lumrah sekali.","(13) Para ahli-ahli menilai solusi jangka panjang harus dimulai dari hulu. (14) Penghijauan kembali lereng yang gundul dan pengendalian pembangunan di bantaran jauh lebih murah daripada membangun tanggul yang terus ditinggikan. (15) Namun, langkah semacam ini menuntut kesabaran karena hasilnya baru terasa setelah belasan tahun. (16) ...."]}],"SOAL":[{"no":1,"teks":1,"sub":"T1","bentuk":"PG","stem":"Makna kata reservoir pada paragraf kedua teks tersebut adalah ....","opsi":["lapisan batuan tempat uap dan air panas terkumpul","saluran pipa yang mengalirkan uap ke turbin","bak penampung air hasil kondensasi","lubang sumur hasil pengeboran","mesin pengubah uap menjadi listrik"],"kunci":["A"],"bahas":"Konteks kalimat “sumur bor menembus reservoir hingga kedalaman lebih dari seribu meter” dan paragraf 1 (“uap panas ... tersimpan dalam batuan berpori”) menunjukkan reservoir adalah lapisan batuan penyimpan uap/air panas."},{"no":2,"teks":1,"sub":"I1","bentuk":"PG","stem":"Gagasan utama paragraf ketiga teks tersebut adalah ...","opsi":["Warga sekitar menolak seluruh kegiatan pengeboran panas bumi.","Pengembangan panas bumi menghadapi hambatan biaya dan kekhawatiran warga.","Eksplorasi panas bumi hampir selalu berakhir dengan kegagalan.","Hutan di sekitar lapangan panas bumi dijaga ketat oleh pengelola.","Satu sumur kering merugikan perusahaan puluhan miliar rupiah."],"kunci":["B"],"bahas":"Kalimat pertama paragraf 3 (“bukan tanpa hambatan”) adalah kalimat utama; kalimat lain merinci hambatan biaya dan kekhawatiran warga. Opsi D dan E hanya gagasan pendukung."},{"no":3,"teks":1,"sub":"I2","bentuk":"MCMA","stem":"Mengapa penulis menyatakan bahwa panas bumi tergolong energi terbarukan?","opsi":["Uap yang telah dipakai diinjeksikan kembali ke dalam bumi.","Pembangkit di Wayang Windu telah beroperasi sejak 1980-an.","Emisinya jauh lebih rendah daripada batu bara.","Sumur bor menembus kedalaman lebih dari seribu meter.","Hutan resapan di sekitar lapangan mengisi ulang reservoir."],"kunci":["A","C","E"],"bahas":"Pernyataan “tergolong energi terbarukan” dihubungkan penulis dengan siklus injeksi ulang (A), emisi rendah (C), dan resapan hutan yang mengisi ulang reservoir (E). Usia operasi (B) dan kedalaman sumur (D) bukan alasan keterbarukan."},{"no":4,"teks":1,"sub":"E2","bentuk":"KAT","skala":["Benar","Salah"],"stem":"Apakah pernyataan berikut sesuai dengan kecukupan informasi dalam teks?","opsi":["Teks memberikan data jumlah listrik yang dihasilkan Wayang Windu dan Kamojang.","Teks menyajikan dua sudut pandang, yaitu kekhawatiran warga dan penjelasan pengelola.","Informasi dalam teks cukup untuk menyimpulkan bahwa pengeboran terbukti merusak mata air."],"kunci":["Salah","Benar","Salah"],"bahas":"A salah: tidak ada angka produksi listrik. B benar: paragraf 3 memuat kekhawatiran warga dan bantahan pengelola. C salah: teks hanya menyebut kekhawatiran, bukan bukti kerusakan."},{"no":5,"teks":2,"sub":"T2","bentuk":"PG","stem":"Berdasarkan kosakata bedengan, tengkulak, keranjang bambu, dan kabut, latar cerita tersebut adalah ....","opsi":["kebun stroberi di dataran tinggi pada pagi hari","pasar buah di kota pada siang hari","sawah di dataran rendah pada sore hari","halaman sekolah pada pagi hari","gudang tengkulak di pinggir jalan raya"],"kunci":["A"],"bahas":"Bedengan dan keranjang bambu menunjuk kebun; kabut dan stroberi menunjuk dataran tinggi; “kabut belum terangkat” dan “matahari mulai menyentuh” menunjuk pagi."},{"no":6,"teks":2,"sub":"I1","bentuk":"KAT","skala":["Benar","Salah"],"stem":"Apa konflik yang dialami tokoh aku dalam cerpen tersebut?","opsi":["Pertentangan batin antara kewajiban membantu ekonomi keluarga dan keinginan mengikuti seleksi angklung.","Kemarahan tokoh aku kepada Abah yang melarangnya bersekolah.","Persaingan tokoh aku dengan teman-temannya dalam seleksi angklung."],"kunci":["Benar","Salah","Salah"],"bahas":"Konflik batin tampak pada “dua gambar bertumpuk”. Abah tidak melarang sekolah (B salah); persaingan dengan teman tidak diceritakan (C salah)."},{"no":7,"teks":2,"sub":"I3","bentuk":"MCMA","stem":"Apa yang paling mungkin terjadi setelah tokoh aku berlari meninggalkan kebun?","opsi":["Tokoh aku tiba di aula dalam keadaan terlambat, tetapi tetap berusaha mengikuti seleksi.","Abah membatalkan penjualan stroberi karena kecewa kepada tokoh aku.","Abah sendiri yang melayani tengkulak seperti yang ia janjikan.","Tokoh aku berhenti sekolah untuk bekerja penuh di kebun.","Tokoh aku mengikuti seleksi dengan seragam yang kotor terkena tanah."],"kunci":["A","C","E"],"bahas":"Waktu sudah 07.20 (terlambat) tetapi tokoh tetap berlari (A); Abah berkata “Abah yang urus tengkulak” (C); ia memetik dengan seragam dan lengan tergulung (E). B dan D bertentangan dengan sikap Abah di akhir cerita."},{"no":8,"teks":2,"sub":"E4","bentuk":"PG","stem":"Bagian cerpen yang paling tepat menggambarkan watak Abah yang keras di luar tetapi peduli kepada anaknya adalah ...","opsi":["“Rani, sok atuh, bantu Abah. Tengkulak datang jam delapan.”","Ia menatap keranjang, bukan menatapku.","Kalimat itu tidak keras, tetapi menghunjam lebih dalam daripada bentakan.","“Lari,” katanya singkat. “Abah yang urus tengkulak.”","Kami memetik tanpa bicara."],"kunci":["D"],"bahas":"Kalimat singkat dan tegas (“Lari”) menunjukkan sisi keras, sedangkan isi perintahnya melepaskan Rani ke seleksi—bukti kepedulian. Opsi lain hanya menunjukkan satu sisi."},{"no":9,"teks":3,"sub":"I1","bentuk":"PG","stem":"Tujuan penulis pada Teks 1 adalah ...","opsi":["menginformasikan upaya pemerintah memulihkan Citarum beserta hasil dan kendalanya","mengajak pembaca menjadi relawan pembersih sungai","mengkritik lambannya kinerja satuan tugas gabungan","membandingkan Citarum dengan sungai lain di dunia","menjelaskan cara kerja bank sampah di bantaran sungai"],"kunci":["A"],"bahas":"Teks 1 bersifat informatif: program, pelaksana, hasil (indeks membaik), dan kendala (sampah domestik). Tidak ada ajakan atau kritik eksplisit."},{"no":10,"teks":3,"sub":"T3","bentuk":"PG","stem":"Kerangka yang paling tepat menggambarkan urutan isi Teks 2 adalah ...","opsi":["kegiatan relawan → kesulitan yang dihadapi → upaya bank sampah → pandangan koordinator tentang akar masalah","sejarah komunitas → jumlah anggota → sumber dana → rencana kegiatan","kondisi sungai → program pemerintah → hasil program → kendala program","pandangan koordinator → kegiatan relawan → upaya bank sampah → kesulitan","akar masalah → solusi pemerintah → solusi komunitas → simpulan"],"kunci":["A"],"bahas":"Urutan Teks 2: aksi susur sungai, kesulitan (“sampah turun lagi”), bank sampah, lalu pandangan Deni tentang akar masalah. Opsi C adalah kerangka Teks 1."},{"no":11,"teks":3,"sub":"E2","bentuk":"MCMA","stem":"Pernyataan yang didukung oleh kedua teks tersebut adalah ...","opsi":["Sampah rumah tangga masih menjadi masalah utama pencemaran Citarum.","Kualitas air Citarum telah kembali bersih seperti semula.","Upaya pemulihan Citarum melibatkan lebih dari satu pihak.","Program pemerintah ditolak oleh komunitas relawan.","Hujan besar menjadi penyebab utama membaiknya kualitas air."],"kunci":["A","C"],"bahas":"A: Teks 1 (“sampah domestik penyumbang terbesar”) dan Teks 2 (warga membuang sampah ke sungai). C: Teks 1 (satgas gabungan) dan Teks 2 (komunitas). B, D, E tidak didukung; Deni “tidak menolak program pemerintah”."},{"no":12,"teks":3,"sub":"I2","bentuk":"KAT","skala":["Setuju","Tidak Setuju"],"stem":"Bagaimana hubungan makna antara Teks 2 dan Teks 1?","opsi":["Teks 2 melengkapi Teks 1 dengan menunjukkan sisi masalah yang belum tersentuh program pemerintah.","Teks 2 bertentangan sepenuhnya dengan Teks 1 karena menyatakan program pemerintah gagal.","Kalimat terakhir Teks 1 dan pernyataan Deni tentang truk sampah menunjuk pada persoalan yang sama."],"kunci":["Setuju","Tidak Setuju","Setuju"],"bahas":"Teks 2 memperkaya, bukan menolak (A setuju, B tidak setuju). Sampah domestik (Teks 1) dan tidak terjangkaunya truk sampah (Teks 2) merujuk pada persoalan yang sama (C setuju)."},{"no":13,"teks":4,"sub":"T1","bentuk":"KAT","skala":["Tepat","Tidak Tepat"],"stem":"Tentukan ketepatan penggunaan kata serapan pada kalimat-kalimat berikut!","opsi":["Pertunjukan angklung kini dapat disaksikan secara virtual melalui kanal digital.","Para pengrajin memakai bambu hitam yang telah dikeringkan agar nadanya standart.","Sanggar itu berkolaborasi dengan musisi jazz untuk mengaransemen lagu daerah."],"kunci":["Tepat","Tidak Tepat","Tepat"],"bahas":"Virtual, kanal, digital, kolaborasi, musisi, mengaransemen adalah serapan baku. Bentuk baku dari standart adalah standar."},{"no":14,"teks":4,"sub":"I2","bentuk":"PG","stem":"Hubungan makna antara paragraf ketiga dan paragraf keempat teks tersebut adalah ...","opsi":["Paragraf keempat menyanggah kritik yang disebutkan pada akhir paragraf ketiga.","Paragraf keempat merinci contoh yang disebutkan pada paragraf ketiga.","Paragraf keempat mengulang isi paragraf ketiga dengan kalimat berbeda.","Paragraf ketiga merupakan akibat dari pendapat pada paragraf keempat.","Paragraf ketiga dan keempat membahas dua sanggar yang berbeda."],"kunci":["A"],"bahas":"Paragraf 3 diakhiri kritik pelestari tradisi; paragraf 4 dibuka “Namun, pengelola sanggar berpendapat sebaliknya”—konjungsi pertentangan yang menandai sanggahan."},{"no":15,"teks":4,"sub":"E3","bentuk":"PG","stem":"Kalimat “Ia menjadi identitas yang dipertaruhkan: dirawat atau ditinggalkan.” digunakan penulis untuk ...","opsi":["menegaskan dua pilihan yang bertolak belakang secara ringkas dan tegas","menjelaskan proses pengakuan angklung oleh UNESCO","menggambarkan cara anak-anak berlatih angklung","memberikan contoh alat musik bambu selain angklung","menyampaikan data jumlah pemain angklung yang menyusut"],"kunci":["A"],"bahas":"Tanda titik dua dan pasangan kata berlawanan (dirawat/ditinggalkan) dipakai untuk menegaskan dilema secara padat—inilah fungsi retoris kalimat tersebut."},{"no":16,"teks":4,"sub":"I3","bentuk":"MCMA","stem":"Berdasarkan paragraf keempat, apa yang kemungkinan dilakukan sanggar tersebut pada masa mendatang?","opsi":["Terus mengembangkan konten digital sebagai sarana menarik minat anak.","Menghentikan pelatihan dengan angklung bambu yang sesungguhnya.","Mengajak anak yang tertarik lewat aplikasi untuk berlatih langsung dengan angklung.","Melarang kolaborasi dengan musisi bergenre modern.","Menggabungkan pertunjukan tradisional dengan aransemen baru."],"kunci":["A","C","E"],"bahas":"Pandangan “angklung digital adalah pintu masuk” mengarah pada A dan C; kolaborasi jazz (paragraf 3) yang dibela pengelola mengarah pada E. B dan D bertentangan dengan sikap sanggar."},{"no":17,"teks":5,"sub":"T2","bentuk":"PG","stem":"Berdasarkan kata pucuk, keranjang, kabut, punggung bukit, dan upah per kilogram, tokoh dan latar yang digambarkan puisi tersebut adalah ....","opsi":["pemetik teh di perkebunan dataran tinggi","petani padi di sawah dataran rendah","pedagang teh di pasar kota","nelayan di pantai yang berkabut","buruh pabrik pengolahan teh"],"kunci":["A"],"bahas":"Pucuk yang dipetik, keranjang di punggung, kabut, bukit hijau, dan upah per kilogram adalah kosakata khas pemetik teh di perkebunan pegunungan (judul: Rancabali)."},{"no":18,"teks":5,"sub":"E5","bentuk":"PG","stem":"Respons emosional yang paling tepat dirasakan pembaca setelah membaca bait terakhir puisi tersebut adalah ....","opsi":["iba dan gelisah terhadap kerja keras pemetik yang tidak sebanding dengan upahnya","kagum terhadap keindahan bukit hijau yang tertutup kabut","bangga terhadap mutu teh yang dinikmati orang kota","jengkel terhadap hujan yang tidak pernah berhenti","lega karena hari kerja pemetik telah berakhir"],"kunci":["A"],"bahas":"Larik “ditanam di atas lelah yang tak terbayar” dan “upah dihitung per kilogram” membangun nada ironis-getir yang memancing rasa iba dan gelisah, bukan kekaguman."},{"no":19,"teks":5,"sub":"E4","bentuk":"KAT","skala":["Benar","Salah"],"stem":"Apakah bagian puisi berikut tepat menggambarkan hal yang dinyatakan?","opsi":["Larik “jemari mereka menghitung pucuk / seperti menghitung sisa umur” tepat menggambarkan kerja pemetik yang berulang dan menguras usia.","Larik “di kota, seseorang menyeduh kehangatan” tepat menggambarkan tokoh pemetik yang menikmati hasil kerjanya.","Larik “kabut kembali menutup bukit / seolah tak ingin siapa pun melihat” tepat menggambarkan penderitaan pemetik yang tersembunyi dari perhatian orang luar."],"kunci":["Benar","Salah","Benar"],"bahas":"A: simile pucuk–sisa umur menggambarkan kerja monoton yang memakan usia. B: “seseorang di kota” adalah penikmat teh, bukan pemetik. C: personifikasi kabut menutupi bukit melambangkan nasib pemetik yang tak terlihat."},{"no":20,"teks":6,"sub":"T3","bentuk":"PG","stem":"Bagan yang paling tepat menggambarkan alur isi teks tersebut adalah ...","opsi":["kejayaan masa lalu → kehancuran dan masa surut → kebangkitan melalui tumpang sari → persoalan mutu dan solusinya → simpulan","kebangkitan → kejayaan masa lalu → persoalan mutu → kehancuran → simpulan","persoalan mutu → solusi pengolahan bersama → kejayaan masa lalu → kebangkitan → simpulan","kejayaan masa lalu → kebangkitan → kehancuran → persoalan mutu → simpulan","simpulan → kejayaan masa lalu → kehancuran → kebangkitan → persoalan mutu"],"kunci":["A"],"bahas":"Paragraf 1: kejayaan dan kehancuran; paragraf 2: kebangkitan lewat tumpang sari; paragraf 3: persoalan mutu dan rumah pengolahan; paragraf 4: simpulan."},{"no":21,"teks":6,"sub":"I1","bentuk":"MCMA","stem":"Nilai-nilai yang dapat disimpulkan dari paragraf ketiga dan keempat teks tersebut adalah ...","opsi":["kedisiplinan memanen hanya buah yang telah matang","kerja sama melalui rumah pengolahan bersama","keberanian mengambil risiko dengan berutang","ketekunan menjaga mutu produk secara konsisten","ketergantungan pada pembeli dari luar negeri"],"kunci":["A","B","D"],"bahas":"Teks menekankan kedisiplinan pada mutu (A, D) dan kerja kolektif (B). Berutang (C) tidak disebut; ketergantungan (E) justru dihindari."},{"no":22,"teks":6,"sub":"E1","bentuk":"PG","stem":"Peristiwa dalam teks yang paling relevan dengan kehidupan pelaku usaha kecil pada umumnya adalah ...","opsi":["Mengejar setoran dengan mengorbankan mutu justru menjatuhkan harga jual dalam jangka panjang.","Penyakit karat daun memusnahkan perkebunan pada akhir abad ke-19.","Kopi Jawa Barat pernah menjadi komoditas termahal di Eropa.","Petani diberi izin menanam kopi di bawah tegakan pinus.","Lereng Malabar dikenal sebagai penghasil teh dan sayuran."],"kunci":["A"],"bahas":"Dilema mutu versus kuantitas dialami hampir semua usaha kecil; peristiwa lain bersifat historis atau khusus perkebunan."},{"no":23,"teks":6,"sub":"I3","bentuk":"KAT","skala":["Tepat","Tidak Tepat"],"stem":"Jika kelompok tani tidak membangun rumah pengolahan bersama, apa yang kemungkinan terjadi?","opsi":["Mutu biji tetap tidak seragam sehingga pembeli terus menekan harga.","Permintaan kopi Malabar akan hilang sama sekali dalam waktu setahun.","Petani yang memanen buah matang tetap dirugikan oleh citra mutu buruk dari petani lain."],"kunci":["Tepat","Tidak Tepat","Tepat"],"bahas":"A dan C merupakan kelanjutan logis dari paragraf 3 (mutu tidak seragam → harga tertekan, pembeli “menawar dengan curiga”). B berlebihan dan tidak didukung teks."},{"no":24,"teks":7,"sub":"T1","bentuk":"PG","stem":"Kata kumaha dalam kalimat “Kumaha, Ki, boleh kuunggah?” merupakan serapan dari bahasa Sunda yang bermakna ....","opsi":["bagaimana","apakah","mengapa","kapan","di mana"],"kunci":["A"],"bahas":"Kumaha (Sunda) berarti bagaimana; konteksnya adalah meminta pendapat/izin."},{"no":25,"teks":7,"sub":"I1","bentuk":"PG","stem":"Konflik utama dalam cerpen tersebut adalah ...","opsi":["pertentangan antara keinginan tokoh aku memperkenalkan karya Aki secara instan dan sikap Aki yang menjunjung proses","perebutan pahat kecil antara tokoh aku dan Aki","kemarahan Aki karena direkam tanpa izin","persaingan antarpengrajin wayang golek di Jelekong","penolakan dalang dari Sumedang untuk membayar pesanan"],"kunci":["A"],"bahas":"Video 15 detik (instan) berhadapan dengan tiga bulan menunggu kayu kering (proses). Tokoh aku sendiri menyadari “tergesa-gesanya aku”."},{"no":26,"teks":7,"sub":"E1","bentuk":"MCMA","stem":"Peristiwa dalam cerpen yang relevan dengan kehidupan remaja saat ini adalah ...","opsi":["Keinginan cepat dikenal di media sosial sering mendahului pemahaman terhadap hal yang dibagikan.","Setiap remaja wajib menjadi pengrajin wayang golek.","Keterampilan tradisional menuntut kesabaran yang jarang dimiliki generasi serba cepat.","Media sosial selalu merugikan pengrajin tradisional.","Belajar langsung dari ahlinya memberi pemahaman yang tidak diperoleh dari layar."],"kunci":["A","C","E"],"bahas":"A, C, E mencerminkan pengalaman umum remaja. B bersifat generalisasi keliru; D bertentangan dengan teks (tokoh aku tidak menyalahkan ponselnya)."},{"no":27,"teks":7,"sub":"E5","bentuk":"KAT","skala":["Setuju","Tidak Setuju"],"stem":"Bagaimana respons emosional pembaca terhadap kalimat penutup “Tidak ada yang gampang. Yang ada, yang dikerjakan sampai selesai.”?","opsi":["Kalimat itu menimbulkan rasa tergugah karena berisi nasihat yang sederhana tetapi tegas.","Kalimat itu menimbulkan rasa kesal karena Aki menolak mengajari cucunya.","Kalimat itu menimbulkan rasa haru karena menunjukkan penerimaan Aki terhadap niat belajar cucunya."],"kunci":["Setuju","Tidak Setuju","Setuju"],"bahas":"Aki menyodorkan kayu—tanda menerima, bukan menolak (B tidak setuju). Nasihat pendek yang tegas memancing rasa tergugah (A) dan haru (C)."},{"no":28,"teks":8,"sub":"I2","bentuk":"PG","stem":"Hubungan makna antara kalimat (9) dan kalimat (10) adalah ...","opsi":["Kalimat (10) menunjukkan hasil sekaligus keterbatasan upaya pada kalimat (9).","Kalimat (10) merupakan penyebab dari peristiwa pada kalimat (9).","Kalimat (10) memberikan contoh dari pernyataan pada kalimat (9).","Kalimat (10) bertentangan sepenuhnya dengan kalimat (9).","Kalimat (10) mengulang isi kalimat (9) dengan kata lain."],"kunci":["A"],"bahas":"“Upaya ini terbukti mengurangi ... tetapi belum menghilangkan” menyatakan hasil dan batas dari pembangunan kolam retensi dan terowongan."},{"no":29,"teks":8,"sub":"E3","bentuk":"MCMA","stem":"Kalimat yang penggunaan bahasanya tidak tepat (tidak efektif) dalam teks tersebut adalah ...","opsi":["kalimat (4)","kalimat (7)","kalimat (12)","kalimat (13)","kalimat (14)"],"kunci":["B","C","D"],"bahas":"(7) “banyak para warga” — pemborosan kata (banyak/para); (12) “sangat lumrah sekali” — dua penanda superlatif; (13) “para ahli-ahli” — jamak ganda. Kalimat (4) dan (14) efektif."},{"no":30,"teks":8,"sub":"I3","bentuk":"MCMA","stem":"Kalimat yang tepat untuk mengisi bagian (16) sebagai penutup paragraf keempat adalah ...","opsi":["Oleh karena itu, kesabaran tersebut harus dibarengi kebijakan yang konsisten lintas periode pemerintahan.","Dengan demikian, pembangunan tanggul sebaiknya dihentikan sama sekali.","Tanpa kesediaan menunggu, warga hulu dan hilir akan terus mewarisi banjir yang sama.","Jadi, banjir Dayeuhkolot merupakan peristiwa alam yang tidak dapat dicegah.","Karena itu, penghijauan perlu dimulai sekarang agar generasi berikutnya menikmati hasilnya."],"kunci":["A","C","E"],"bahas":"Kalimat (15) berbicara tentang kesabaran menunggu hasil belasan tahun; A, C, E melanjutkan gagasan itu secara logis. B berlebihan; D bertentangan dengan kalimat (5)."}]};
+const KOMP = { T: "Pemahaman Tekstual", I: "Pemahaman Inferensial", E: "Evaluasi dan Apresiasi" };
+const L = "ABCDE";
+const DURASI = 90 * 60;
+const PIN_GURU = "merdeka2026";
+const $ = (s, r = document) => r.querySelector(s);
+const app = $("#app");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function rng(seed) { let x = 0; for (const ch of String(seed)) x = (x * 31 + ch.charCodeAt(0)) >>> 0; return () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; }; }
+function shuffle(arr, r) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+// Penyimpanan lokal (dipakai bila server claude.ai tidak tersedia, mis. file dibuka langsung / hosting sendiri)
+const localDb = (() => { const K = "tka_db"; const all = () => store.get(K) || {}; const save = (o) => store.set(K, o); const subs = [];
+  const emit = () => subs.forEach((f) => { try { f(); } catch {} });
+  return { local: true,
+    doc: (p) => ({ get: async () => { const v = all()[p]; return v ? { data: () => v } : null; }, set: async (v) => { const o = all(); o[p] = v; save(o); emit(); }, update: async (v) => { const o = all(); o[p] = { ...(o[p] || {}), ...v }; save(o); emit(); }, delete: async () => { const o = all(); delete o[p]; save(o); emit(); } }),
+    collection: (c) => { const docs = () => Object.entries(all()).filter(([k]) => k.startsWith(c + "/")).map(([k, v]) => ({ id: k, data: () => v })); return { get: async () => ({ docs: docs() }), onSnapshot: (fn) => { const f = () => fn({ docs: docs() }); subs.push(f); f(); return () => { const i = subs.indexOf(f); if (i >= 0) subs.splice(i, 1); }; } }; } };
+})();
+const isGs = (x) => typeof x === "string" && x.startsWith("https://script.google.com/");
+function serverUrl() { try { const u = new URL(location.href).searchParams.get("srv"); if (u && isGs(u)) { store.set("tka_server", u); } } catch {} const v = (window.TKA_SERVER || "").trim() || store.get("tka_server") || ""; return isGs(v) ? v : ""; }
+function makeRemoteDb(url) {
+  const call = async (q, body) => { const r = body ? await fetch(url, { method: "POST", body: JSON.stringify(body) }) : await fetch(url + "?" + new URLSearchParams(q)); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); };
+  const col = (c) => ({
+    get: async () => { const v = await call({ col: c }); return { docs: (v.docs || []).map((d) => ({ id: d.id, data: () => d.data })) }; },
+    onSnapshot: (fn, err) => { let on = true; const tick = async () => { if (!on) return; try { fn(await col(c).get()); } catch (e) { if (err) err(e); } }; tick(); const t = setInterval(tick, 20000); return () => { on = false; clearInterval(t); }; },
+  });
+  return { remote: true, url,
+    doc: (p) => { const [c, id] = p.split("/"); return {
+      get: async () => { const v = await call({ col: c, id }); return v && v.data ? { data: () => v.data } : null; },
+      set: async (d) => { await call(null, { op: "set", col: c, id, data: d }); },
+      update: async (d) => { await call(null, { op: "update", col: c, id, data: d }); },
+      delete: async () => { await call(null, { op: "delete", col: c, id }); } }; },
+    collection: col };
+}
+let dbP = null; function getDb() { if (!dbP) dbP = (window.claude && claude.use ? claude.use("db") : Promise.resolve(null)).catch(() => null).then((d) => { if (d) return d; const u = serverUrl(); return u ? makeRemoteDb(u) : localDb; }); return dbP; }
+function toast(m) { const t = document.createElement("div"); t.className = "toast"; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); }
+
+// ---------- paket (urutan acak per siswa) ----------
+function buatPaket(seed) {
+  const r = rng(seed);
+  const teksOrder = shuffle(D.TEKS.map((t) => t.id), r);
+  const items = [];
+  for (const tid of teksOrder) {
+    const qs = shuffle(D.SOAL.filter((s) => s.teks === tid), r);
+    for (const s of qs) {
+      const perm = shuffle([0, 1, 2, 3, 4].slice(0, s.opsi.length), r);
+      items.push({ no: s.no, teks: tid, perm });
+    }
+  }
+  return { seed, teksOrder, items };
+}
+function soalTampil(it) {
+  const s = D.SOAL.find((x) => x.no === it.no);
+  const opsi = it.perm.map((i) => s.opsi[i]);
+  // kunci dalam huruf tampilan
+  let kunci;
+  if (s.bentuk === "KAT") kunci = it.perm.map((i) => s.kunci[i]);
+  else kunci = it.perm.map((i, pos) => (s.kunci.includes(L[i]) ? L[pos] : null)).filter(Boolean);
+  const map = {}; it.perm.forEach((i, pos) => (map[L[i]] = L[pos]));
+  const bahas = s.bahas.replace(/(?<![A-Za-z])([A-E])(?![A-Za-z])/g, (m) => map[m] || m);
+  return { ...s, opsi, kunci, bahas };
+}
+function nilaiItem(sd, jaw) {
+  if (jaw == null) return false;
+  if (sd.bentuk === "PG") return jaw === sd.kunci[0];
+  if (sd.bentuk === "MCMA") return Array.isArray(jaw) && jaw.length === sd.kunci.length && sd.kunci.every((k) => jaw.includes(k));
+  return Array.isArray(jaw) && jaw.length === 3 && jaw.every((v, i) => v === sd.kunci[i]);
+}
+function hitung(paket, jawaban) {
+  const benar = {}, komp = { T: [0, 0], I: [0, 0], E: [0, 0] }, sub = {};
+  let skor = 0;
+  for (const it of paket.items) {
+    const sd = soalTampil(it); const ok = nilaiItem(sd, jawaban[it.no]); benar[it.no] = ok;
+    const k = sd.sub[0]; komp[k][1]++; sub[sd.sub] = sub[sd.sub] || [0, 0]; sub[sd.sub][1]++;
+    if (ok) { skor++; komp[k][0]++; sub[sd.sub][0]++; }
+  }
+  return { skor, nilai: Math.round((skor / 30) * 1000) / 10, benar, komp, sub };
+}
+
+// ---------- state ----------
+let S = store.get("tka_state");
+const isGuru = () => location.hash === "#guru";
+
+function render() {
+  if (isGuru()) return renderGuru();
+  if (!S || S.step === "login") return renderLogin();
+  if (S.step === "exam") return renderExam();
+  if (S.step === "done") return renderResult();
+}
+
+// ---------- login ----------
+function renderLogin() {
+  $("#timer").hidden = true;
+  app.innerHTML = `<section class="login">
+    <div class="eyebrow">Tes Kemampuan Akademik · SMA</div>
+    <h1>Tryout Bahasa Indonesia</h1>
+    <p>Kerjakan dengan tenang. Hasil dan analisis kemampuanmu tampil begitu selesai.</p>
+    <div class="spec"><div><b>30</b><span>soal</span></div><div><b>8</b><span>teks bacaan</span></div><div><b>90</b><span>menit</span></div></div>
+    <form id="fLogin">
+      <div class="field"><label for="nama">Nama lengkap</label><input id="nama" required autocomplete="off" placeholder="cth. Rani Nurhasanah"></div>
+      <div class="field"><label for="kelas">Kelas</label><input id="kelas" required autocomplete="off" placeholder="cth. XII-1"></div>
+      <ul class="rules">
+        <li><b>Pilihan Ganda</b>: pilih satu jawaban.</li>
+        <li><b>PG Kompleks</b> (jawaban benar lebih dari satu): centang semua yang benar; skor hanya diberikan jika seluruh pilihan tepat.</li>
+        <li><b>PG Kompleks kategori</b>: tentukan Benar/Salah, Setuju/Tidak Setuju, atau Tepat/Tidak Tepat untuk tiap pernyataan.</li>
+        <li>Urutan teks, soal, dan pilihan jawaban berbeda untuk setiap siswa. Waktu berjalan sejak tombol Mulai ditekan.</li>
+      </ul>
+      <button class="primary" type="submit" style="width:100%">Mulai mengerjakan</button>
+    </form></section>`;
+  $("#fLogin").onsubmit = (e) => {
+    e.preventDefault();
+    const nama = $("#nama").value.trim(), kelas = $("#kelas").value.trim().toUpperCase();
+    if (!nama || !kelas) return;
+    const seed = nama + "|" + kelas + "|" + Date.now();
+    S = { step: "exam", nama, kelas, mulai: Date.now(), paket: buatPaket(seed), jawaban: {}, sec: 0 };
+    store.set("tka_state", S); render();
+  };
+}
+
+// ---------- exam ----------
+let tick = null;
+function sisaDetik() { return Math.max(0, DURASI - Math.floor((Date.now() - S.mulai) / 1000)); }
+function updTimer() {
+  const s = sisaDetik(); const el = $("#timer"); el.hidden = false;
+  el.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  el.className = "timer mono" + (s <= 300 ? " crit" : s <= 900 ? " warn" : "");
+  if (s <= 0) { selesai(true); }
+}
+function renderExam() {
+  clearInterval(tick); tick = setInterval(updTimer, 1000); updTimer();
+  const tid = S.paket.teksOrder[S.sec]; const t = D.TEKS.find((x) => x.id === tid);
+  const items = S.paket.items.filter((it) => it.teks === tid);
+  const terjawab = Object.keys(S.jawaban).length;
+  const stim = (t.bagian ? t.bagian.map((b) => `<div class="sub">${esc(b.label)}</div>` + b.paragraf.map((p) => `<p>${esc(p)}</p>`).join("")).join("")
+    : t.puisi ? `<div class="puisi">${t.paragraf.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`
+    : t.paragraf.map((p) => `<p>${esc(p)}</p>`).join(""));
+  app.innerHTML = `
+  <div class="sectionbar"><span class="eyebrow">Bagian ${S.sec + 1} dari 8 · ${esc(t.jenis)}</span><span class="note">${esc(S.nama)} · ${esc(S.kelas)} · terjawab ${terjawab}/30</span></div>
+  <div class="progress"><i style="width:${(terjawab / 30) * 100}%"></i></div>
+  <div class="exam">
+    <aside class="stim" id="stim"><div class="eyebrow">Teks bacaan</div><h2>${esc(t.judul)}</h2>${stim}${t.puisi ? '<div class="src">(ditulis untuk keperluan asesmen)</div>' : ""}</aside>
+    <div>
+      <button class="togglestim ghost" id="tgl">Tampilkan teks lengkap</button>
+      <div class="qs">${items.map((it, i) => qHtml(it, i)).join("")}</div>
+      <div class="nav">
+        <button id="prev" ${S.sec === 0 ? "disabled" : ""}>← Bagian sebelumnya</button>
+        ${S.sec < 7 ? '<button class="primary" id="next">Bagian berikutnya →</button>' : '<button class="primary" id="fin">Kumpulkan jawaban</button>'}
+      </div>
+      <div class="dots" style="margin-top:.8rem">${S.paket.teksOrder.map((id, i) => { const n = S.paket.items.filter((x) => x.teks === id).length, d = S.paket.items.filter((x) => x.teks === id && S.jawaban[x.no] != null).length; return `<button class="dot ${d === n ? "done" : ""} ${i === S.sec ? "cur" : ""}" data-sec="${i}" title="Bagian ${i + 1}">${i + 1}</button>`; }).join("")}</div>
+      <p class="note">Kotak biru = semua soal bagian itu sudah dijawab. Anda bisa kembali ke bagian mana pun sebelum mengumpulkan.</p>
+    </div>
+  </div>`;
+  if (window.innerWidth <= 860) { $("#stim").classList.add("collapsed"); }
+  $("#tgl").onclick = () => { const c = $("#stim").classList.toggle("collapsed"); $("#tgl").textContent = c ? "Tampilkan teks lengkap" : "Ringkas teks"; };
+  app.querySelectorAll(".dot").forEach((b) => (b.onclick = () => { S.sec = +b.dataset.sec; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); }));
+  if ($("#prev")) $("#prev").onclick = () => { S.sec--; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); };
+  if ($("#next")) $("#next").onclick = () => { S.sec++; store.set("tka_state", S); renderExam(); window.scrollTo(0, 0); };
+  if ($("#fin")) $("#fin").onclick = () => {
+    const kosong = 30 - Object.keys(S.jawaban).length;
+    if (confirm(kosong ? `Masih ada ${kosong} soal belum dijawab. Kumpulkan sekarang?` : "Kumpulkan jawaban sekarang?")) selesai(false);
+  };
+  app.querySelectorAll("[data-q]").forEach((el) => el.addEventListener("change", onJawab));
+}
+function qHtml(it, i) {
+  const sd = soalTampil(it); const j = S.jawaban[it.no]; const kind = sd.bentuk === "PG" ? "Pilihan ganda" : sd.bentuk === "MCMA" ? "PG kompleks · jawaban benar lebih dari satu" : "PG kompleks · " + sd.skala.join(" / ");
+  const nomorTampil = S.paket.items.indexOf(it) + 1;
+  let body = "";
+  if (sd.bentuk === "KAT") {
+    body = `<table class="kat" data-q="${it.no}"><thead><tr><th></th><th>Pernyataan</th><th style="text-align:center">${sd.skala[0]}</th><th style="text-align:center">${sd.skala[1]}</th></tr></thead><tbody>${sd.opsi.map((o, k) => `<tr><td class="mono">${L[k]}.</td><td>${esc(o)}</td>${sd.skala.map((sk) => `<td class="c"><label class="${j && j[k] === sk ? "on" : ""}"><input type="radio" name="q${it.no}_${k}" value="${esc(sk)}" ${j && j[k] === sk ? "checked" : ""}>${esc(sk)}</label></td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  } else {
+    const type = sd.bentuk === "PG" ? "radio" : "checkbox";
+    body = `<div data-q="${it.no}">${sd.opsi.map((o, k) => { const on = sd.bentuk === "PG" ? j === L[k] : Array.isArray(j) && j.includes(L[k]); return `<label class="opt ${on ? "on" : ""}"><input type="${type}" name="q${it.no}" value="${L[k]}" ${on ? "checked" : ""}><span class="L">${L[k]}.</span><span>${esc(o)}</span></label>`; }).join("")}</div>`;
+  }
+  return `<article class="q" id="q${it.no}"><div class="head"><span class="num">Soal ${nomorTampil}</span><span class="kind">${kind}</span></div><p class="stem">${esc(sd.stem)}</p>${body}</article>`;
+}
+function onJawab(e) {
+  const box = e.currentTarget; const no = +box.dataset.q; const it = S.paket.items.find((x) => x.no === no); const sd = soalTampil(it);
+  if (sd.bentuk === "PG") { S.jawaban[no] = box.querySelector("input:checked")?.value ?? undefined; }
+  else if (sd.bentuk === "MCMA") { const v = [...box.querySelectorAll("input:checked")].map((x) => x.value); if (v.length) S.jawaban[no] = v; else delete S.jawaban[no]; }
+  else { const v = [0, 1, 2].map((k) => box.querySelector(`input[name="q${no}_${k}"]:checked`)?.value ?? null); if (v.every((x) => x)) S.jawaban[no] = v; else delete S.jawaban[no]; }
+  if (S.jawaban[no] === undefined) delete S.jawaban[no];
+  box.querySelectorAll("label").forEach((l) => l.classList.toggle("on", l.querySelector("input").checked));
+  store.set("tka_state", S);
+  const n = Object.keys(S.jawaban).length; $(".progress i").style.width = (n / 30) * 100 + "%"; $(".sectionbar .note").textContent = `${S.nama} · ${S.kelas} · terjawab ${n}/30`;
+  const tid = it.teks; const all = S.paket.items.filter((x) => x.teks === tid); const done = all.filter((x) => S.jawaban[x.no] != null).length;
+  app.querySelectorAll(".dot")[S.sec]?.classList.toggle("done", done === all.length);
+}
+
+async function selesai(auto) {
+  clearInterval(tick);
+  const h = hitung(S.paket, S.jawaban);
+  const id = (S.nama + "-" + S.kelas + "-" + S.mulai).replace(/[^A-Za-z0-9_\-]/g, "_").slice(0, 120);
+  const rec = { id, nama: S.nama, kelas: S.kelas, mulai: new Date(S.mulai).toISOString(), selesai: new Date().toISOString(), durasi: Math.floor((Date.now() - S.mulai) / 1000), otomatis: !!auto,
+    skor: h.skor, nilai: h.nilai, komp: h.komp, sub: h.sub, benar: h.benar, jawaban: S.jawaban, teksOrder: S.paket.teksOrder };
+  S = { ...S, step: "done", hasil: rec, tersimpan: false }; store.set("tka_state", S); render();
+  const db = await getDb();
+  if (db) { try { await db.doc("hasil/" + id).set(rec); S.tersimpan = !db.local; store.set("tka_state", S); const el = $("#simpan"); if (el) el.textContent = db.local ? "Hasil tersimpan di perangkat ini saja. Tekan tombol Salin kode hasil, lalu kirim ke guru." : "Hasil tersimpan ke server sekolah."; } catch (e) { const el = $("#simpan"); if (el) el.textContent = "Hasil belum tersimpan ke server (" + (e.code || e.message || "gagal") + "). Tunjukkan layar ini kepada guru."; } }
+  else { const el = $("#simpan"); if (el) el.textContent = "Hasil tersimpan di perangkat ini saja. Tekan tombol Salin kode hasil, lalu kirim ke guru."; }
+}
+
+// ---------- result ----------
+function barKelas(p) { return p >= 75 ? "good" : p >= 55 ? "warn" : "crit"; }
+function renderResult() {
+  $("#timer").hidden = true;
+  const r = S.hasil; const kompRows = ["T", "I", "E"].map((k) => { const [b, n] = r.komp[k]; const p = Math.round((b / n) * 100); return `<div class="bar"><span>${KOMP[k]}</span><div class="track"><i class="${barKelas(p)}" style="width:${p}%"></i></div><span class="v">${b}/${n} · ${p}%</span></div>`; }).join("");
+  const subRows = Object.keys(D.SUB).map((k) => { const [b, n] = r.sub[k] || [0, 0]; const p = Math.round((b / n) * 100); return `<tr><td class="mono">${k}</td><td>${esc(D.SUB[k][1])}</td><td class="n">${b}/${n}</td><td class="n"><span class="pill ${barKelas(p)}">${p}%</span></td></tr>`; }).join("");
+  const lemah = Object.entries(r.sub).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1]).slice(0, 3).map(([k]) => D.SUB[k][1]);
+  const pred = r.nilai >= 75 ? ["good", "Siap — pertahankan"] : r.nilai >= 55 ? ["warn", "Cukup — perlu latihan terarah"] : ["crit", "Perlu pendampingan"];
+  const grid = S.paket.items.map((it, i) => { const j = r.jawaban[it.no]; const cls = j == null ? "skip" : r.benar[it.no] ? "ok" : "no"; return `<span class="${cls}" title="Soal ${i + 1} (butir ${it.no})">${i + 1}</span>`; }).join("");
+  app.innerHTML = `<section class="res">
+    <div class="hero"><div class="score">${r.nilai}<small> / 100</small></div>
+      <div><div class="eyebrow">Hasil tryout</div><h2>${esc(r.nama)} · ${esc(r.kelas)}</h2><p>${r.skor} dari 30 soal benar · ${Math.floor(r.durasi / 60)} menit ${r.durasi % 60} detik${r.otomatis ? " · dikumpulkan otomatis saat waktu habis" : ""}</p><p><span class="pill ${pred[0]}">${pred[1]}</span></p><p class="note" id="simpan">Menyimpan hasil…</p></div></div>
+    <div class="card"><h3>Capaian per kompetensi</h3><div class="bars">${kompRows}</div></div>
+    <div class="card"><h3>Peta jawaban</h3><div class="grid30">${grid}</div><p class="note">Hijau benar · merah salah · abu-abu tidak dijawab. Nomor mengikuti urutan soal yang kamu kerjakan.</p></div>
+    <div class="card"><h3>Rincian subkompetensi</h3><div class="tw"><table class="t"><thead><tr><th>Kode</th><th>Subkompetensi</th><th>Benar</th><th>Capaian</th></tr></thead><tbody>${subRows}</tbody></table></div>
+      <p><b>Fokus latihan berikutnya:</b> ${lemah.map(esc).join("; ")}.</p></div>
+    <div class="card" id="bahasCard" hidden><h3>Pembahasan</h3><div id="bahasBody"></div></div>
+    <div class="actions"><button class="primary" id="salin">Salin kode hasil untuk guru</button><button id="ulang">Selesai / siswa berikutnya</button></div>
+    <p class="note">Jika hasil tidak tersimpan ke server, tekan "Salin kode hasil" lalu kirim ke guru (WhatsApp/Google Form). Guru dapat mengimpornya ke dasbor.</p>
+  </section>`;
+  $("#salin").onclick = async () => { const kode = "TKA1." + btoa(unescape(encodeURIComponent(JSON.stringify(S.hasil)))); try { await navigator.clipboard.writeText(kode); toast("Kode hasil disalin — kirim ke guru"); } catch { prompt("Salin kode berikut:", kode); } };
+  $("#ulang").onclick = () => { if (confirm("Hapus data ujian di perangkat ini dan kembali ke halaman awal?")) { store.del("tka_state"); S = null; render(); } };
+  getDb().then(async (db) => {
+    if (!db) return;
+    try { const cfg = await db.doc("pengaturan/utama").get(); const c = unwrap(cfg); if (c && c.tampilBahas) tampilBahas(); } catch {}
+  });
+}
+function tampilBahas() {
+  const r = S.hasil; $("#bahasCard").hidden = false;
+  $("#bahasBody").innerHTML = S.paket.items.map((it, i) => { const sd = soalTampil(it); const j = r.jawaban[it.no]; const jt = j == null ? "—" : Array.isArray(j) ? j.join(", ") : j; const kt = sd.bentuk === "KAT" ? sd.kunci.map((k, x) => L[x] + " " + k).join("; ") : sd.kunci.join(", ");
+    return `<div class="bahas"><b>Soal ${i + 1}</b> · jawabanmu: ${esc(jt)} · kunci: ${esc(kt)} · ${r.benar[it.no] ? '<span class="pill good">benar</span>' : '<span class="pill crit">salah</span>'}<br>${esc(sd.bahas)}</div>`; }).join("");
+}
+function unwrap(x) { if (!x) return null; if (typeof x.data === "function") return x.data(); if (x.data && typeof x.data === "object" && !("nama" in x)) return x.data; return x; }
+function docsOf(snap) { if (!snap) return []; const arr = Array.isArray(snap) ? snap : snap.docs || snap.documents || snap.items || []; return arr.map((d) => { const v = unwrap(d); return v && v.nama ? v : null; }).filter(Boolean); }
+
+// ---------- teacher ----------
+let unsub = null, hasilAll = [], gTab = "rekap", gKelas = "";
+function renderGuru() {
+  $("#timer").hidden = true; clearInterval(tick);
+  if (sessionStorage.getItem("guru_ok") !== "1") {
+    app.innerHTML = `<section class="login"><div class="eyebrow">Akses guru</div><h1>Dasbor hasil tryout</h1><p>Masukkan PIN guru.</p><form id="fPin"><div class="field"><input id="pin" type="password" placeholder="PIN"></div><button class="primary" type="submit">Masuk</button> <button type="button" class="ghost" id="back">Kembali</button></form></section>`;
+    $("#fPin").onsubmit = (e) => { e.preventDefault(); if ($("#pin").value === PIN_GURU) { try { sessionStorage.setItem("guru_ok", "1"); } catch {} renderGuru(); } else toast("PIN salah"); };
+    $("#back").onclick = () => { location.hash = ""; render(); };
+    return;
+  }
+  app.innerHTML = `<div class="sectionbar"><div><div class="eyebrow">Dasbor guru</div><h2 style="font-size:1.5rem">Hasil Tryout TKA Bahasa Indonesia</h2></div><button class="ghost" id="keluar">Keluar</button></div>
+    <div id="gBody"><p class="note">Menghubungkan ke server…</p></div>`;
+  $("#keluar").onclick = () => { try { sessionStorage.removeItem("guru_ok"); } catch {} location.hash = ""; render(); };
+  getDb().then((db) => {
+    if (!db) return;
+    window._dbLocal = !!db.local;
+    const col = db.collection("hasil");
+    const handle = (snap) => { hasilAll = docsOf(snap); drawGuru(); };
+    try { if (unsub) unsub(); unsub = col.onSnapshot(handle, (e) => { $("#gBody").innerHTML = '<p class="note">Gagal membaca data: ' + esc(e.message || e.code || e) + "</p>"; }); }
+    catch { col.get().then(handle).catch((e) => { $("#gBody").innerHTML = '<p class="note">Gagal membaca data: ' + esc(e.message || e) + "</p>"; }); }
+    db.doc("pengaturan/utama").get().then((c) => { const v = unwrap(c); window._cfg = v || {}; drawGuru(); }).catch(() => {});
+  });
+}
+function avg(a) { return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; }
+function drawGuru() {
+  const kelasList = [...new Set(hasilAll.map((h) => h.kelas))].sort();
+  const rows = hasilAll.filter((h) => !gKelas || h.kelas === gKelas).sort((a, b) => b.nilai - a.nilai);
+  const n = rows.length;
+  const kAvg = ["T", "I", "E"].map((k) => Math.round(avg(rows.map((h) => (h.komp[k][0] / h.komp[k][1]) * 100))));
+  const tuntas = rows.filter((h) => h.nilai >= 75).length;
+  const cfg = window._cfg || {};
+  let body = `<div class="toolbar"><label>Kelas <select id="fKelas"><option value="">Semua (${hasilAll.length})</option>${kelasList.map((k) => `<option ${k === gKelas ? "selected" : ""}>${esc(k)}</option>`).join("")}</select></label>
+    <button id="csv">Salin CSV</button><button id="unduh">Unduh CSV</button><button id="impor">Impor kode hasil</button>
+    <label style="margin-left:auto;display:flex;gap:.4rem;align-items:center"><input type="checkbox" id="tb" ${cfg.tampilBahas ? "checked" : ""} style="width:auto"> Tampilkan pembahasan ke siswa</label></div>
+    <p class="note" id="srvinfo"></p>
+    <div class="kpis"><div class="kpi"><b>${n}</b><span>peserta</span></div><div class="kpi"><b>${n ? Math.round(avg(rows.map((h) => h.nilai)) * 10) / 10 : "–"}</b><span>rata-rata nilai</span></div><div class="kpi"><b>${n ? Math.round((tuntas / n) * 100) : 0}%</b><span>nilai ≥ 75</span></div><div class="kpi"><b>${kAvg[0]}%</b><span>Tekstual</span></div><div class="kpi"><b>${kAvg[1]}%</b><span>Inferensial</span></div><div class="kpi"><b>${kAvg[2]}%</b><span>Evaluasi</span></div></div>
+    <div class="tabs">${[["rekap", "Rekap siswa"], ["butir", "Analisis butir"], ["sub", "Subkompetensi"]].map(([k, l]) => `<button class="${gTab === k ? "on" : ""}" data-tab="${k}">${l}</button>`).join("")}</div>`;
+  if (window._dbLocal) body += '<p class="note">Mode lokal: data tersimpan di browser perangkat ini (bukan server). Kumpulkan hasil siswa lewat tombol <b>Impor kode hasil</b>, lalu simpan rekap dengan <b>Unduh/Salin CSV</b>.</p>';
+  if (!n) body += '<p class="note">Belum ada hasil masuk. ' + (window._dbLocal ? "Impor kode hasil yang dikirim siswa." : "Bagikan tautan halaman ini kepada siswa; hasil muncul di sini secara langsung.") + '</p>';
+  else if (gTab === "rekap") {
+    body += `<div class="card"><div class="tw"><table class="t"><thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>Skor</th><th>Nilai</th><th>Tekstual</th><th>Inferensial</th><th>Evaluasi</th><th>Terlemah</th><th>Waktu</th><th></th></tr></thead><tbody>${rows.map((h, i) => { const pk = ["T", "I", "E"].map((k) => Math.round((h.komp[k][0] / h.komp[k][1]) * 100)); const lemah = Object.entries(h.sub || {}).sort((a, b) => a[1][0] / a[1][1] - b[1][0] / b[1][1])[0]; return `<tr><td class="n">${i + 1}</td><td>${esc(h.nama)}</td><td>${esc(h.kelas)}</td><td class="n">${h.skor}/30</td><td class="n"><span class="pill ${barKelas(h.nilai)}">${h.nilai}</span></td><td class="n">${pk[0]}%</td><td class="n">${pk[1]}%</td><td class="n">${pk[2]}%</td><td class="mono">${lemah ? lemah[0] : "–"}</td><td class="n">${Math.floor(h.durasi / 60)}′${h.otomatis ? " ⏱" : ""}</td><td><button class="del" data-del="${esc(h.id)}" title="Hapus">✕</button></td></tr>`; }).join("")}</tbody></table></div></div>`;
+  } else if (gTab === "butir") {
+    const items = D.SOAL.map((s) => { const b = rows.filter((h) => h.benar && h.benar[s.no]).length; const p = Math.round((b / n) * 100); const d = p >= 70 ? "mudah" : p >= 30 ? "sedang" : "sukar"; return { s, b, p, d }; });
+    body += `<div class="card"><p class="note">Tingkat kesukaran = % peserta yang menjawab benar (mudah ≥70%, sedang 30–69%, sukar &lt;30%). Butir sukar layak dibahas ulang di kelas; butir sangat mudah bisa dipertajam.</p><div class="tw"><table class="t"><thead><tr><th>Butir</th><th>Teks</th><th>Bentuk</th><th>Sub</th><th>Benar</th><th>% benar</th><th>Kesukaran</th></tr></thead><tbody>${items.map(({ s, b, p, d }) => `<tr><td class="n">${s.no}</td><td class="n">${s.teks}</td><td>${s.bentuk === "KAT" ? "PGK Kat." : s.bentuk === "MCMA" ? "PGK MCMA" : "PG"}</td><td class="mono">${s.sub}</td><td class="n">${b}/${n}</td><td class="n">${p}%</td><td><i class="diff ${d}"></i>${d}</td></tr>`).join("")}</tbody></table></div></div>`;
+  } else {
+    body += `<div class="card"><div class="bars">${Object.keys(D.SUB).map((k) => { const ps = rows.map((h) => (h.sub && h.sub[k] ? (h.sub[k][0] / h.sub[k][1]) * 100 : 0)); const p = Math.round(avg(ps)); return `<div class="bar"><span><span class="mono">${k}</span> ${esc(D.SUB[k][1])}</span><div class="track"><i class="${barKelas(p)}" style="width:${p}%"></i></div><span class="v">${p}%</span></div>`; }).join("")}</div>
+      <p class="note" style="margin-top:.8rem">Rekomendasi: subkompetensi &lt;55% menjadi fokus program remedial berbasis teks; 55–74% dilatih melalui tugas membaca terstruktur; ≥75% dipertahankan.</p></div>`;
+  }
+  $("#gBody").innerHTML = body;
+  getDb().then((db) => { const el = $("#srvinfo"); if (!el) return; if (db.remote) el.innerHTML = "Penyimpanan: <b>Google Sheets sekolah</b> (diperbarui tiap 20 detik). <button class='ghost' id='ubahsrv' style='font-size:.8rem;padding:.15rem .5rem'>Ubah server</button>"; else if (db.local) el.innerHTML = "Penyimpanan: <b>perangkat ini saja</b> — hasil siswa dari perangkat lain masuk lewat tombol Impor kode hasil. <button class='ghost' id='ubahsrv' style='font-size:.8rem;padding:.15rem .5rem'>Hubungkan server Google Sheets</button>"; else el.textContent = "Penyimpanan: server artefak Claude."; const b = $("#ubahsrv"); if (b) b.onclick = () => { const u = prompt("Tempel URL Web App Google Apps Script (diakhiri /exec):", store.get("tka_server") || ""); if (u === null) return; if (u && !isGs(u)) return toast("URL harus dimulai https://script.google.com/"); store.set("tka_server", u.trim()); location.reload(); }; });
+  $("#fKelas").onchange = (e) => { gKelas = e.target.value; drawGuru(); };
+  app.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { gTab = b.dataset.tab; drawGuru(); }));
+  const csv = () => { const H = ["Nama", "Kelas", "Skor", "Nilai", "Tekstual%", "Inferensial%", "Evaluasi%", ...Object.keys(D.SUB).map((k) => k + "%"), ...D.SOAL.map((s) => "B" + s.no), "Durasi(dtk)", "Selesai"]; const R = rows.map((h) => [h.nama, h.kelas, h.skor, h.nilai, ...["T", "I", "E"].map((k) => Math.round((h.komp[k][0] / h.komp[k][1]) * 100)), ...Object.keys(D.SUB).map((k) => (h.sub && h.sub[k] ? Math.round((h.sub[k][0] / h.sub[k][1]) * 100) : "")), ...D.SOAL.map((s) => (h.benar && h.benar[s.no] ? 1 : 0)), h.durasi, h.selesai]); return [H, ...R].map((r) => r.map((v) => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\n"); };
+  $("#impor").onclick = async () => { const txt = prompt("Tempel satu atau beberapa kode hasil (TKA1.…), pisahkan dengan spasi/baris:"); if (!txt) return; const db = await getDb(); if (!db) return toast("Server tidak tersedia"); let n = 0; for (const k of txt.split(/\s+/)) { if (!k.startsWith("TKA1.")) continue; try { const rec = JSON.parse(decodeURIComponent(escape(atob(k.slice(5))))); if (rec && rec.id && rec.nama) { await db.doc("hasil/" + rec.id).set(rec); n++; } } catch {} } toast(n ? n + " hasil diimpor" : "Tidak ada kode valid"); };
+  $("#csv").onclick = async () => { try { await navigator.clipboard.writeText(csv()); toast("CSV disalin — tempel ke Excel/Sheets"); } catch { toast("Gagal menyalin; gunakan Unduh CSV"); } };
+  $("#unduh").onclick = async () => { const dl = window.claude && claude.use ? await claude.use("downloads").catch(() => null) : null; if (dl) { try { await dl.save({ filename: "hasil_tryout_tka_bindo.csv", data: csv() }); } catch (e) { toast("Unduhan dibatalkan"); } return; } try { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv()], { type: "text/csv" })); a.download = "hasil_tryout_tka_bindo.csv"; document.body.appendChild(a); a.click(); a.remove(); } catch { toast("Unduhan tidak tersedia; gunakan Salin CSV"); } };
+  $("#tb").onchange = async (e) => { const db = await getDb(); if (!db) return; try { await db.doc("pengaturan/utama").set({ tampilBahas: e.target.checked }); window._cfg = { tampilBahas: e.target.checked }; toast(e.target.checked ? "Pembahasan kini tampil untuk siswa yang selesai" : "Pembahasan disembunyikan dari siswa"); } catch (er) { toast("Gagal menyimpan pengaturan"); } };
+  app.querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => { if (!confirm("Hapus hasil ini?")) return; const db = await getDb(); try { await db.doc("hasil/" + b.dataset.del).delete(); toast("Dihapus"); } catch (e) { toast("Gagal menghapus"); } }));
+}
+
+$("#btnGuru").onclick = () => { location.hash = "#guru"; render(); };
+window.addEventListener("hashchange", render);
+render();
+</script></body></html>
